@@ -1,11 +1,41 @@
 # weather_api_pipeline_integration
-Event-driven ELT architecture on AWS and Snowflake to capture hourly weather insights
-
-
-1. Ingestion & Trigger (λ + S3): EventBridge triggers an AWS Lambda function hourly to fetch data from the Weather API, clean it, and drop the file into an S3 bucket (the data lake landing zone).
-   
-2. Notification (SQS): An S3 event triggers a second Lambda, which sends a notification message (containing the S3 path) to an SQS queue. This ensures reliable hand-off and decoupling.
-
-3. Near Real-Time Loading (SnowPipe): Snowflake's SnowPipe is configured to monitor the SQS queue. As soon as a message arrives, SnowPipe automatically and continuously loads the new weather file from S3 into a staging table in Snowflake. No manual COPY statements needed!
-
-4. Analytics & Visualization: The structured data in Snowflake is then connected to Power BI for automated dashboards, enabling instant trend analysis and insights.
+Project Overview
+This project implements a fully automated, serverless, event-driven data pipeline to collect hourly weather data, process it in the cloud, load it into a cloud data warehouse, and visualize the insights. It leverages a modern Extract, Load, Transform (ELT) architecture using AWS services for orchestration and Snowflake for analytical storage.
+Key Objectives:
+Automated Ingestion: Fetch and process weather data on a reliable, hourly schedule.
+Scalability & Durability: Utilize serverless and managed services (Lambda, SQS, S3) for high availability.
+Near Real-Time Loading: Implement continuous data loading into the data warehouse using SnowPipe.
+Business Intelligence: Connect the structured data to Power BI for dynamic reporting and analysis.
+Architecture Diagram
+The project flow is detailed in the diagram below:
+Technology Stack
+CategoryService/ToolPurposeData SourceWeather APIProvides the raw hourly weather data.Scheduling/EventsAWS EventBridgeTriggers the ingestion process on an hourly cron schedule.ProcessingAWS Lambda (×2)Two serverless functions for initial data fetching/cleansing and SQS notification generation.Data LakeAWS S3Highly durable storage for landing and staging the raw/processed weather files.Messaging/QueueAmazon SQSDecouples the S3 file creation from the Snowflake loading process.Data WarehouseSnowflakeScalable, analytical data platform for storing and querying the data.Continuous LoadingSnowflake SnowPipeAutomates the continuous, event-driven loading of files from S3 (via SQS) into Snowflake tables.VisualizationPower BIConnects to Snowflake for creating dashboards and deriving business insights.
+Pipeline Data Flow (Step-by-Step)
+Event Trigger: EventBridge executes an hourly rule, triggering the first AWS Lambda function.
+Data Fetch & Store: The Lambda calls the Weather API, processes the resulting data (e.g., converts to JSONL or CSV), and writes the file to the S3 Landing Bucket.
+Notification: The S3 upload triggers a second AWS Lambda. This Lambda's job is to extract the file metadata (key/path) and send a reliable message to the Amazon SQS queue.
+SnowPipe Integration: Snowflake SnowPipe is configured to monitor the SQS queue.
+Data Load: When a new message is received, SnowPipe automatically pulls the corresponding file from the S3 bucket and loads the data into the designated table within Snowflake.
+Analysis: Power BI connects directly to the Snowflake table, enabling analysts to build dashboards for tracking weather trends and generating actionable insights.
+Repository Setup
+This repository contains the necessary code and configuration templates to deploy and manage the pipeline components.
+:file_folder: Structure
+.
+├── lambda_functions/
+│   ├── ingestion_processor/  # Code for Lambda 1 (API call & S3 write)
+│   └── sqs_notifier/         # Code for Lambda 2 (S3 trigger & SQS message)
+├── terraform/
+│   ├── aws_resources.tf      # AWS Infrastructure (EventBridge, S3, SQS, Lambda)
+│   └── snowflake_setup.tf    # Snowflake configuration (Database, Schema, Pipes, Stages)
+├── sql/
+│   └── create_table.sql      # DDL for the Snowflake weather table
+└── README.md
+:hammer_and_spanner: Deployment
+AWS Setup: Deploy the core AWS infrastructure (Lambda, S3, SQS, EventBridge) using the Terraform configurations in the terraform/ directory.
+Snowflake Setup: Configure the Snowflake database, external stage (pointing to S3), and the SnowPipe object using the provided DDL and Terraform. Ensure the SnowPipe service principal has the necessary IAM permissions to read from the S3 bucket.
+API Key: Update the environment variables in the Lambda configuration with your specific Weather API key.
+Insights & Visualization
+The final stage allows users to leverage the structured data in Snowflake via Power BI. Example visualizations include:
+Hourly temperature and humidity trends.
+Historical comparison of weather conditions.
+Mapping data points for geographic analysis.
