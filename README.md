@@ -2,13 +2,14 @@
 ### Project Overview
 - This project implements a fully automated, serverless, event-driven data pipeline to collect hourly weather data, process it in the cloud, load it into a cloud data warehouse, and visualize the insights. It leverages a modern Extract, Load, Transform (ELT) architecture using AWS services for orchestration and Snowflake for analytical storage.
 ----
+
 ### Key Objectives:
 1. Automated Ingestion: Fetch and process weather data on a reliable, hourly schedule.
 2. Scalability & Durability: Utilize serverless and managed services (Lambda, SQS, S3) for high availability.
 3. Near Real-Time Loading: Implement continuous data loading into the data warehouse using SnowPipe.
 4. Business Intelligence: Connect the structured data to Power BI for dynamic reporting and analysis.
 ### Architecture Diagram
-### The project flow is detailed in the diagram below:
+![Architecture](https://github.com/jibinxjonah/weather_api_pipeline_integration/blob/master/portfolio_project.png)
 ### Technology Stack
 CategoryService/ToolPurposeData SourceWeather APIProvides the raw hourly weather data.Scheduling/EventsAWS EventBridgeTriggers the ingestion process on an hourly cron schedule.ProcessingAWS Lambda (×2)Two serverless functions for initial data fetching/cleansing and SQS notification generation.Data LakeAWS S3Highly durable storage for landing and staging the raw/processed weather files.Messaging/QueueAmazon SQSDecouples the S3 file creation from the Snowflake loading process.Data WarehouseSnowflakeScalable, analytical data platform for storing and querying the data.Continuous LoadingSnowflake SnowPipeAutomates the continuous, event-driven loading of files from S3 (via SQS) into Snowflake tables.VisualizationPower BIConnects to Snowflake for creating dashboards and deriving business insights.
 
